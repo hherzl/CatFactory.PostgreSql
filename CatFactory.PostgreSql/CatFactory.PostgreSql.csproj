@@ -2,6 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Version>1.0.0-beta-sun-build00</Version>
+    <Authors>H. Herzl</Authors>
+    <Company>Herzl Corp.</Company>
+    <Description>CatFactory package for Postgre SQL</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>CatFactory PostgreSQL</PackageTags>
+    <PackageReleaseNotes>1.0.0-beta-sun-build00
+
+Initial Version
+
+ * Implementation of database factory for Postgre SQL
+</PackageReleaseNotes>
+    <PackageLicenseUrl>https://github.com/hherzl/CatFactory.PostgreSql/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/hherzl/CatFactory.PostgreSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/hherzl/CatFactory.PostgreSql</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
