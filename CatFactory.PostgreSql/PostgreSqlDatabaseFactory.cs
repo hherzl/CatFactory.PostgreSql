@@ -94,15 +94,19 @@ namespace CatFactory.PostgreSql
                     if (DatabaseImportSettings.Exclusions.Contains(table.FullName))
                         continue;
 
+                    // todo: Set primary key for table
+                    // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
+                    table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
+
                     database.Tables.Add(table);
                 }
 
-                foreach (var table in database.Tables)
+                foreach (var view in await GetViewsAsync(connection, database))
                 {
-                    // todo: Set primary key for table
-                    // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
+                    if (DatabaseImportSettings.Exclusions.Contains(view.FullName))
+                        continue;
 
-                    table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
+                    database.Views.Add(view);
                 }
 
                 connection.Close();
@@ -163,13 +167,9 @@ namespace CatFactory.PostgreSql
                     Name = dbObject.Name
                 };
 
-                var documentObjectModel = await connection.GetColumnsAsync(table.Schema, table.Name);
+                var columns = await connection.GetColumnsAsync(table.Schema, table.Name);
 
-                var postgreColumns = documentObjectModel
-                    .Where(item => item.TableSchema == dbObject.Schema && item.TableName == dbObject.Name)
-                    .ToList();
-
-                foreach (var postgreColumn in postgreColumns)
+                foreach (var postgreColumn in columns)
                 {
                     var column = new Column
                     {
@@ -181,13 +181,9 @@ namespace CatFactory.PostgreSql
                     };
 
                     if (column.Type.Contains("char"))
-                    {
                         column.Length = Convert.ToInt32(postgreColumn.CharacterMaximumLength);
-                    }
                     else if (column.Type.Contains("numeric"))
-                    {
                         column.Prec = Convert.ToInt16(postgreColumn.NumericPrecision);
-                    }
 
                     table.Columns.Add(column);
                 }
@@ -225,6 +221,47 @@ namespace CatFactory.PostgreSql
             var list = query.ToList();
 
             return list.Count == 0 ? null : new PrimaryKey(list.First().ConstraintName, list.Select(item => item.ColumnName).ToArray());
+        }
+
+        protected virtual async Task<ICollection<View>> GetViewsAsync(DbConnection connection, Database database)
+        {
+            var collection = new Collection<View>();
+
+            foreach (var dbObject in database.GetViews())
+            {
+                var view = new View
+                {
+                    DataSource = connection.DataSource,
+                    Catalog = connection.Database,
+                    Schema = dbObject.Schema,
+                    Name = dbObject.Name
+                };
+
+                var columns = await connection.GetColumnsAsync(view.Schema, view.Name);
+
+                foreach (var postgreColumn in columns)
+                {
+                    var column = new Column
+                    {
+                        Name = postgreColumn.ColumnName,
+                        Type = postgreColumn.DataType,
+                        Nullable = string.Compare(postgreColumn.IsNullable, "YES", true) == 0 ? true : false,
+                        Scale = Convert.ToInt16(postgreColumn.NumericScale),
+                        DefaultValue = postgreColumn.ColumnDefault
+                    };
+
+                    if (column.Type.Contains("char"))
+                        column.Length = Convert.ToInt32(postgreColumn.CharacterMaximumLength);
+                    else if (column.Type.Contains("numeric"))
+                        column.Prec = Convert.ToInt16(postgreColumn.NumericPrecision);
+
+                    view.Columns.Add(column);
+                }
+
+                collection.Add(view);
+            }
+
+            return collection;
         }
     }
 }

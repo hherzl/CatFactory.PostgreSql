@@ -9,5 +9,8 @@ namespace CatFactory.PostgreSql
     {
         public static IEnumerable<DbObject> GetTables(this Database database)
             => database.DbObjects.Where(item => new string[] { "table" }.Contains(item.Type));
+
+        public static IEnumerable<DbObject> GetViews(this Database database)
+            => database.DbObjects.Where(item => new string[] { "view" }.Contains(item.Type));
     }
 }
