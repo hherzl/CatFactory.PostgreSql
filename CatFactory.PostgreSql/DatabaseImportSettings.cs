@@ -24,6 +24,13 @@ namespace CatFactory.PostgreSql
                     information_schema.views
                 where
                     table_schema = 'public'
+            union
+                select
+                    sequence_schema as schema_name, sequence_name as object_name, 'sequence' as object_type
+                from
+                    information_schema.sequences
+                where
+                    sequence_schema = 'public'
             ;";
 
             ImportTables = true;
@@ -36,6 +43,8 @@ namespace CatFactory.PostgreSql
         public bool ImportTables { get; set; }
 
         public bool ImportViews { get; set; }
+
+        public bool ImportSequences { get; set; }
 
         public List<string> Exclusions
         {

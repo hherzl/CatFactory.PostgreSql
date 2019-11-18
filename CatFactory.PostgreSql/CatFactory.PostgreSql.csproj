@@ -15,6 +15,7 @@ Initial Version
  * Implementation of database factory for Postgre SQL
 * Import tables
 * Import views
+* Import sequences
 </PackageReleaseNotes>
     <PackageLicenseUrl>https://github.com/hherzl/CatFactory.PostgreSql/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/hherzl/CatFactory.PostgreSql</PackageProjectUrl>

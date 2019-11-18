@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
 {
@@ -98,8 +99,8 @@ namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
                 command.CommandType = CommandType.Text;
                 command.CommandText = cmdText.ToString();
 
-                command.Parameters.AddWithValue("@tableSchema", NpgsqlTypes.NpgsqlDbType.Varchar, (object)tableSchema ?? DBNull.Value);
-                command.Parameters.AddWithValue("@tableName", NpgsqlTypes.NpgsqlDbType.Varchar, (object)tableName ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tableSchema", NpgsqlDbType.Varchar, (object)tableSchema ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tableName", NpgsqlDbType.Varchar, (object)tableName ?? DBNull.Value);
 
                 var collection = new Collection<TableConstraints>();
 
@@ -249,8 +250,8 @@ namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
                 command.CommandType = CommandType.Text;
                 command.CommandText = cmdText.ToString();
 
-                command.Parameters.AddWithValue("@tableSchema", NpgsqlTypes.NpgsqlDbType.Varchar, (object)tableSchema ?? DBNull.Value);
-                command.Parameters.AddWithValue("@tableName", NpgsqlTypes.NpgsqlDbType.Varchar, (object)tableName ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tableSchema", NpgsqlDbType.Varchar, (object)tableSchema ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tableName", NpgsqlDbType.Varchar, (object)tableName ?? DBNull.Value);
 
                 var collection = new Collection<Columns>();
 
@@ -344,8 +345,8 @@ namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
                 command.CommandType = CommandType.Text;
                 command.CommandText = cmdText.ToString();
 
-                command.Parameters.AddWithValue("@tableSchema", NpgsqlTypes.NpgsqlDbType.Varchar, (object)tableSchema ?? DBNull.Value);
-                command.Parameters.AddWithValue("@tableName", NpgsqlTypes.NpgsqlDbType.Varchar, (object)tableName ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tableSchema", NpgsqlDbType.Varchar, (object)tableSchema ?? DBNull.Value);
+                command.Parameters.AddWithValue("@tableName", NpgsqlDbType.Varchar, (object)tableName ?? DBNull.Value);
 
                 var collection = new Collection<KeyColumnUsage>();
 
@@ -377,9 +378,9 @@ namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
         public static ICollection<KeyColumnUsage> GetKeyColumnUsages(this DbConnection connection)
             => connection.GetKeyColumnUsagesAsync().GetAwaiter().GetResult();
 
-        public static async Task<ICollection<Sequences>> GetSequencesAsync(this DbConnection connection)
+        public static async Task<ICollection<Sequences>> GetSequencesAsync(this DbConnection connection, string sequenceSchema = null, string sequenceName = null)
         {
-            using (var command = connection.CreateCommand())
+            using (var command = new NpgsqlCommand())
             {
                 var cmdText = new StringBuilder();
 
@@ -398,11 +399,17 @@ namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
                 cmdText.Append("  cycle_option ");
                 cmdText.Append(" from ");
                 cmdText.Append("  information_schema.sequences ");
+                cmdText.Append(" where ");
+                cmdText.Append("  (@sequenceSchema is null or sequence_schema = @sequenceSchema) ");
+                cmdText.Append("  and (@sequenceName is null or sequence_name = @sequenceName) ");
                 cmdText.Append(" ; ");
 
-                command.Connection = connection;
+                command.Connection = (NpgsqlConnection)connection;
                 command.CommandType = CommandType.Text;
                 command.CommandText = cmdText.ToString();
+
+                command.Parameters.AddWithValue("@sequenceSchema", NpgsqlDbType.Varchar, (object)sequenceSchema ?? DBNull.Value);
+                command.Parameters.AddWithValue("@sequenceName", NpgsqlDbType.Varchar, (object)sequenceName ?? DBNull.Value);
 
                 var collection = new Collection<Sequences>();
 

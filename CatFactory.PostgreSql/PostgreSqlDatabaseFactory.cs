@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CatFactory.ObjectRelationalMapping;
+using CatFactory.ObjectRelationalMapping.Programmability;
 using CatFactory.PostgreSql.DocumentObjectModel.Queries;
 using Npgsql;
 
@@ -13,13 +14,15 @@ namespace CatFactory.PostgreSql
 {
     public class PostgreSqlDatabaseFactory : IDatabaseFactory
     {
-        public static async Task<Database> ImportAsync(string connectionString, IEnumerable<string> exclusions = null)
+        public static async Task<Database> ImportAsync(string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
         {
             var factory = new PostgreSqlDatabaseFactory
             {
                 DatabaseImportSettings = new DatabaseImportSettings
                 {
-                    ConnectionString = connectionString
+                    ConnectionString = connectionString,
+                    ImportViews = importViews,
+                    ImportSequences = importSequences
                 }
             };
 
@@ -29,21 +32,8 @@ namespace CatFactory.PostgreSql
             return await factory.ImportAsync();
         }
 
-        public static Database Import(string connectionString, IEnumerable<string> exclusions = null)
-        {
-            var factory = new PostgreSqlDatabaseFactory
-            {
-                DatabaseImportSettings = new DatabaseImportSettings
-                {
-                    ConnectionString = connectionString
-                }
-            };
-
-            if (exclusions != null)
-                factory.DatabaseImportSettings.Exclusions.AddRange(exclusions);
-
-            return factory.Import();
-        }
+        public static Database Import(string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
+            => ImportAsync(connectionString, importViews, importSequences, exclusions).GetAwaiter().GetResult();
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private DatabaseImportSettings m_databaseImportSettings;
@@ -101,12 +91,26 @@ namespace CatFactory.PostgreSql
                     database.Tables.Add(table);
                 }
 
-                foreach (var view in await GetViewsAsync(connection, database))
+                if (DatabaseImportSettings.ImportViews)
                 {
-                    if (DatabaseImportSettings.Exclusions.Contains(view.FullName))
-                        continue;
+                    foreach (var view in await GetViewsAsync(connection, database))
+                    {
+                        if (DatabaseImportSettings.Exclusions.Contains(view.FullName))
+                            continue;
 
-                    database.Views.Add(view);
+                        database.Views.Add(view);
+                    }
+                }
+
+                if (DatabaseImportSettings.ImportSequences)
+                {
+                    foreach (var sequence in await GetSequencesAsync(connection, database))
+                    {
+                        if (DatabaseImportSettings.Exclusions.Contains(sequence.FullName))
+                            continue;
+
+                        database.Sequences.Add(sequence);
+                    }
                 }
 
                 connection.Close();
@@ -136,7 +140,7 @@ namespace CatFactory.PostgreSql
                         collection.Add(new DbObject
                         {
                             DataSource = connection.DataSource,
-                            Catalog = connection.Database,
+                            DatabaseName = connection.Database,
                             Schema = reader.GetString(0),
                             Name = reader.GetString(1),
                             Type = reader.GetString(2)
@@ -162,7 +166,7 @@ namespace CatFactory.PostgreSql
                 var table = new Table
                 {
                     DataSource = connection.DataSource,
-                    Catalog = connection.Database,
+                    DatabaseName = connection.Database,
                     Schema = dbObject.Schema,
                     Name = dbObject.Name
                 };
@@ -232,7 +236,7 @@ namespace CatFactory.PostgreSql
                 var view = new View
                 {
                     DataSource = connection.DataSource,
-                    Catalog = connection.Database,
+                    DatabaseName = connection.Database,
                     Schema = dbObject.Schema,
                     Name = dbObject.Name
                 };
@@ -259,6 +263,28 @@ namespace CatFactory.PostgreSql
                 }
 
                 collection.Add(view);
+            }
+
+            return collection;
+        }
+
+        protected virtual async Task<ICollection<Sequence>> GetSequencesAsync(DbConnection connection, Database database)
+        {
+            var collection = new Collection<Sequence>();
+
+            foreach (var dbObject in database.GetSequences())
+            {
+                var sequence = new Sequence
+                {
+                    DataSource = connection.DataSource,
+                    DatabaseName = connection.Database,
+                    Schema = dbObject.Schema,
+                    Name = dbObject.Name
+                };
+
+                var postgreSequence = await connection.GetSequencesAsync(sequence.Schema, sequence.Name);
+
+                collection.Add(sequence);
             }
 
             return collection;

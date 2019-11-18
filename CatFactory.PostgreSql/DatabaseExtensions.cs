@@ -12,5 +12,8 @@ namespace CatFactory.PostgreSql
 
         public static IEnumerable<DbObject> GetViews(this Database database)
             => database.DbObjects.Where(item => new string[] { "view" }.Contains(item.Type));
+
+        public static IEnumerable<DbObject> GetSequences(this Database database)
+            => database.DbObjects.Where(item => new string[] { "sequence" }.Contains(item.Type));
     }
 }
