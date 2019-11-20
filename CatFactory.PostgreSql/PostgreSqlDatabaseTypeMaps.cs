@@ -22,6 +22,14 @@ namespace CatFactory.PostgreSql
                 new DatabaseTypeMap
                 {
                     AllowClrNullable = true,
+                    ClrAliasType = "byte[]",
+                    ClrFullNameType = typeof(byte[]).FullName,
+                    DatabaseType = "bytea",
+                    DbTypeEnum = DbType.Binary
+                },
+                new DatabaseTypeMap
+                {
+                    AllowClrNullable = true,
                     ClrAliasType = "short",
                     ClrFullNameType = typeof(short).FullName,
                     DatabaseType = "smallint",
@@ -92,6 +100,22 @@ namespace CatFactory.PostgreSql
                 },
                 new DatabaseTypeMap
                 {
+                    AllowsLengthInDeclaration = true,
+                    ClrAliasType = "string",
+                    ClrFullNameType = typeof(string).FullName,
+                    DatabaseType = "name",
+                    DbTypeEnum = DbType.String
+                },
+                new DatabaseTypeMap
+                {
+                    AllowsLengthInDeclaration = true,
+                    ClrAliasType = "string",
+                    ClrFullNameType = typeof(Dictionary<string, string>).FullName,
+                    DatabaseType = "hstore",
+                    DbTypeEnum = DbType.Object
+                },
+                new DatabaseTypeMap
+                {
                     AllowClrNullable = true,
                     ClrFullNameType = typeof(DateTime).FullName,
                     DatabaseType = "date",
@@ -100,17 +124,37 @@ namespace CatFactory.PostgreSql
                 new DatabaseTypeMap
                 {
                     AllowClrNullable = true,
-                    ClrFullNameType = typeof(Guid).FullName,
-                    DatabaseType = "uuid",
+                    ClrFullNameType = typeof(TimeSpan).FullName,
+                    DatabaseType = "interval",
+                    DbTypeEnum = DbType.Time
+                },
+                new DatabaseTypeMap
+                {
+                    AllowClrNullable = true,
+                    ClrFullNameType = typeof(DateTime).FullName,
+                    DatabaseType = "timestamp",
                     DbTypeEnum = DbType.DateTime
                 },
                 new DatabaseTypeMap
                 {
                     AllowClrNullable = true,
-                    ClrAliasType = "byte[]",
-                    ClrFullNameType = typeof(byte[]).FullName,
-                    DatabaseType = "bytea",
-                    DbTypeEnum = DbType.Binary
+                    ClrFullNameType = typeof(DateTime).FullName,
+                    DatabaseType = "timestamp with time zone",
+                    DbTypeEnum = DbType.DateTime
+                },
+                new DatabaseTypeMap
+                {
+                    AllowClrNullable = true,
+                    ClrFullNameType = typeof(TimeSpan).FullName,
+                    DatabaseType = "time",
+                    DbTypeEnum = DbType.Time
+                },
+                new DatabaseTypeMap
+                {
+                    AllowClrNullable = true,
+                    ClrFullNameType = typeof(Guid).FullName,
+                    DatabaseType = "uuid",
+                    DbTypeEnum = DbType.DateTime
                 }
             };
     }

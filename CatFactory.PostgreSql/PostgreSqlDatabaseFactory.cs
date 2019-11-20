@@ -8,12 +8,31 @@ using System.Threading.Tasks;
 using CatFactory.ObjectRelationalMapping;
 using CatFactory.ObjectRelationalMapping.Programmability;
 using CatFactory.PostgreSql.DocumentObjectModel.Queries;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace CatFactory.PostgreSql
 {
     public class PostgreSqlDatabaseFactory : IDatabaseFactory
     {
+        public static async Task<Database> ImportAsync(ILogger<PostgreSqlDatabaseFactory> logger, string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
+        {
+            var factory = new PostgreSqlDatabaseFactory(logger)
+            {
+                DatabaseImportSettings = new DatabaseImportSettings
+                {
+                    ConnectionString = connectionString,
+                    ImportViews = importViews,
+                    ImportSequences = importSequences
+                }
+            };
+
+            if (exclusions != null)
+                factory.DatabaseImportSettings.Exclusions.AddRange(exclusions);
+
+            return await factory.ImportAsync();
+        }
+
         public static async Task<Database> ImportAsync(string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
         {
             var factory = new PostgreSqlDatabaseFactory
@@ -32,14 +51,24 @@ namespace CatFactory.PostgreSql
             return await factory.ImportAsync();
         }
 
+        public static Database Import(ILogger<PostgreSqlDatabaseFactory> logger, string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
+            => ImportAsync(logger, connectionString, importViews, importSequences, exclusions).GetAwaiter().GetResult();
+
         public static Database Import(string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
             => ImportAsync(connectionString, importViews, importSequences, exclusions).GetAwaiter().GetResult();
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private DatabaseImportSettings m_databaseImportSettings;
 
+        protected readonly ILogger<PostgreSqlDatabaseFactory> Logger;
+
         public PostgreSqlDatabaseFactory()
         {
+        }
+
+        public PostgreSqlDatabaseFactory(ILogger<PostgreSqlDatabaseFactory> logger)
+        {
+            Logger = logger;
         }
 
         public DatabaseImportSettings DatabaseImportSettings
@@ -51,7 +80,8 @@ namespace CatFactory.PostgreSql
         public DbConnection GetConnection()
             => new NpgsqlConnection(DatabaseImportSettings.ConnectionString);
 
-        public IEnumerable<DatabaseTypeMap> DatabaseTypeMaps => throw new NotImplementedException();
+        public IEnumerable<DatabaseTypeMap> DatabaseTypeMaps
+            => PostgreSqlDatabaseTypeMaps.DatabaseTypeMaps;
 
         public virtual async Task<Database> ImportAsync()
         {
@@ -71,6 +101,8 @@ namespace CatFactory.PostgreSql
 
                 // todo: add user defined datatypes
 
+                Logger?.LogInformation("Importing Db Objects for '{0}'...", database.Name);
+
                 foreach (var dbObject in await GetDbObjectsAsync(connection))
                 {
                     if (DatabaseImportSettings.Exclusions.Contains(dbObject.FullName))
@@ -79,20 +111,27 @@ namespace CatFactory.PostgreSql
                     database.DbObjects.Add(dbObject);
                 }
 
-                foreach (var table in await GetTablesAsync(connection, database))
+                if (DatabaseImportSettings.ImportTables)
                 {
-                    if (DatabaseImportSettings.Exclusions.Contains(table.FullName))
-                        continue;
+                    Logger?.LogInformation("Importing tables for '{0}'...", database.Name);
 
-                    // todo: Set primary key for table
-                    // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
-                    table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
+                    foreach (var table in await GetTablesAsync(connection, database))
+                    {
+                        if (DatabaseImportSettings.Exclusions.Contains(table.FullName))
+                            continue;
 
-                    database.Tables.Add(table);
+                        // todo: Set primary key for table
+                        // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
+                        table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
+
+                        database.Tables.Add(table);
+                    }
                 }
 
                 if (DatabaseImportSettings.ImportViews)
                 {
+                    Logger?.LogInformation("Importing views for '{0}'...", database.Name);
+
                     foreach (var view in await GetViewsAsync(connection, database))
                     {
                         if (DatabaseImportSettings.Exclusions.Contains(view.FullName))
@@ -104,6 +143,8 @@ namespace CatFactory.PostgreSql
 
                 if (DatabaseImportSettings.ImportSequences)
                 {
+                    Logger?.LogInformation("Importing sequences for '{0}'...", database.Name);
+
                     foreach (var sequence in await GetSequencesAsync(connection, database))
                     {
                         if (DatabaseImportSettings.Exclusions.Contains(sequence.FullName))
@@ -153,9 +194,6 @@ namespace CatFactory.PostgreSql
                 }
             }
         }
-
-        protected virtual IEnumerable<DbObject> GetDbObjects(DbConnection connection)
-            => GetDbObjectsAsync(connection).GetAwaiter().GetResult();
 
         protected virtual async Task<ICollection<Table>> GetTablesAsync(DbConnection connection, Database database)
         {

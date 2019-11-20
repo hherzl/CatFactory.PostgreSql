@@ -13,6 +13,7 @@
 Initial Version
 
  * Implementation of database factory for Postgre SQL
+* Addition of logger for import database feature
 * Import tables
 * Import views
 * Import sequences
