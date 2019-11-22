@@ -44,7 +44,7 @@ namespace CatFactory.PostgreSql.Tests
             Assert.True(database.FindTable("public.film").PrimaryKey != null);
             Assert.True(database.FindTable("public.film").Columns.Count == 13);
 
-            Assert.True(database.Sequences.Count > 0);
+            Assert.True((database as PostgreSqlDatabase).Sequences.Count > 0);
         }
 
         [Fact]

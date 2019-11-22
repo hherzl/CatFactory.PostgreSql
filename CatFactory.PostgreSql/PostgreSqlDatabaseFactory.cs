@@ -89,8 +89,8 @@ namespace CatFactory.PostgreSql
             {
                 var database = new PostgreSqlDatabase
                 {
-                    DataSource = connection.DataSource,
-                    Name = connection.DataSource,
+                    ServerName = connection.DataSource,
+                    Name = connection.Database,
                     DefaultSchema = "public",
                     SupportTransactions = true,
                     DatabaseTypeMaps = PostgreSqlDatabaseTypeMaps.DatabaseTypeMaps.ToList(),
@@ -321,6 +321,8 @@ namespace CatFactory.PostgreSql
                 };
 
                 var postgreSequence = await connection.GetSequencesAsync(sequence.Schema, sequence.Name);
+
+                // todo: Add additional info for sequences, e.g. start and end values.
 
                 collection.Add(sequence);
             }
