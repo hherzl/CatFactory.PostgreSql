@@ -10,6 +10,8 @@
     <PackageTags>CatFactory PostgreSQL</PackageTags>
     <PackageReleaseNotes>1.0.0-beta-sun-build01
 
+* Code fix
+
 * Core package update
 * Implementation of database factory for Postgre SQL
 * Addition of logger for import database feature
@@ -23,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build25" />
+    <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build26" />
     <PackageReference Include="Npgsql" Version="4.1.2" />
   </ItemGroup>
 
