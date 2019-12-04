@@ -13,50 +13,8 @@ using Npgsql;
 
 namespace CatFactory.PostgreSql
 {
-    public class PostgreSqlDatabaseFactory : IDatabaseFactory
+    public partial class PostgreSqlDatabaseFactory : IDatabaseFactory
     {
-        public static async Task<Database> ImportAsync(ILogger<PostgreSqlDatabaseFactory> logger, string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
-        {
-            var factory = new PostgreSqlDatabaseFactory(logger)
-            {
-                DatabaseImportSettings = new DatabaseImportSettings
-                {
-                    ConnectionString = connectionString,
-                    ImportViews = importViews,
-                    ImportSequences = importSequences
-                }
-            };
-
-            if (exclusions != null)
-                factory.DatabaseImportSettings.Exclusions.AddRange(exclusions);
-
-            return await factory.ImportAsync();
-        }
-
-        public static async Task<Database> ImportAsync(string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
-        {
-            var factory = new PostgreSqlDatabaseFactory
-            {
-                DatabaseImportSettings = new DatabaseImportSettings
-                {
-                    ConnectionString = connectionString,
-                    ImportViews = importViews,
-                    ImportSequences = importSequences
-                }
-            };
-
-            if (exclusions != null)
-                factory.DatabaseImportSettings.Exclusions.AddRange(exclusions);
-
-            return await factory.ImportAsync();
-        }
-
-        public static Database Import(ILogger<PostgreSqlDatabaseFactory> logger, string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
-            => ImportAsync(logger, connectionString, importViews, importSequences, exclusions).GetAwaiter().GetResult();
-
-        public static Database Import(string connectionString, bool importViews = false, bool importSequences = false, IEnumerable<string> exclusions = null)
-            => ImportAsync(connectionString, importViews, importSequences, exclusions).GetAwaiter().GetResult();
-
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private DatabaseImportSettings m_databaseImportSettings;
 
@@ -122,6 +80,7 @@ namespace CatFactory.PostgreSql
 
                         // todo: Set primary key for table
                         // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
+
                         table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
 
                         database.Tables.Add(table);
@@ -320,11 +279,69 @@ namespace CatFactory.PostgreSql
                     Name = dbObject.Name
                 };
 
-                var postgreSequence = await connection.GetSequencesAsync(sequence.Schema, sequence.Name);
+                var postgreSequences = await connection.GetSequencesAsync(sequence.Schema, sequence.Name);
+
+                var postgreSequence = postgreSequences.FirstOrDefault();
+
+                if (postgreSequence == null)
+                    continue;
+
+                var currentValue = await connection.GetCurrValAsync(sequence.Schema, sequence.Name);
 
                 // todo: Add additional info for sequences, e.g. start and end values.
 
-                collection.Add(sequence);
+                if (postgreSequence.DataType == "bigint")
+                {
+                    var bigIntSequence = new Int64Sequence
+                    {
+                        Schema = postgreSequence.SequenceSchema,
+                        Name = postgreSequence.SequenceName,
+                        StartValue = Convert.ToInt64(postgreSequence.StartValue),
+                        Increment = Convert.ToInt64(postgreSequence.Increment),
+                        MaximumValue = Convert.ToInt64(postgreSequence.MaximumValue),
+                        MinimumValue = Convert.ToInt64(postgreSequence.MinimumValue)
+                    };
+
+                    bigIntSequence.CurrentValue = (long)currentValue;
+
+                    collection.Add(bigIntSequence);
+                }
+                else if (postgreSequence.DataType == "int")
+                {
+                    var intSequence = new Int32Sequence
+                    {
+                        Schema = postgreSequence.SequenceSchema,
+                        Name = postgreSequence.SequenceName,
+                        StartValue = Convert.ToInt32(postgreSequence.StartValue),
+                        Increment = Convert.ToInt32(postgreSequence.Increment),
+                        MaximumValue = Convert.ToInt32(postgreSequence.MaximumValue),
+                        MinimumValue = Convert.ToInt32(postgreSequence.MinimumValue)
+                    };
+
+                    intSequence.CurrentValue = (int)currentValue;
+
+                    collection.Add(intSequence);
+                }
+                else if (postgreSequence.DataType == "smallint")
+                {
+                    var smallIntSequence = new Int16Sequence
+                    {
+                        Schema = postgreSequence.SequenceSchema,
+                        Name = postgreSequence.SequenceName,
+                        StartValue = Convert.ToInt16(postgreSequence.StartValue),
+                        Increment = Convert.ToInt16(postgreSequence.Increment),
+                        MaximumValue = Convert.ToInt16(postgreSequence.MaximumValue),
+                        MinimumValue = Convert.ToInt16(postgreSequence.MinimumValue)
+                    };
+
+                    smallIntSequence.CurrentValue = (short)currentValue;
+
+                    collection.Add(smallIntSequence);
+                }
+                else
+                {
+                    collection.Add(sequence);
+                }
             }
 
             return collection;

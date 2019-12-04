@@ -443,5 +443,21 @@ namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
 
         public static ICollection<Sequences> GetSequences(this DbConnection connection)
             => connection.GetSequencesAsync().GetAwaiter().GetResult();
+
+        public static async Task<object> GetCurrValAsync(this DbConnection connection, string sequenceSchema, string sequenceName)
+        {
+            using (var command = new NpgsqlCommand())
+            {
+                var cmdText = new StringBuilder();
+
+                cmdText.AppendFormat(" SELECT last_value FROM {0}.{1}; ", sequenceSchema, sequenceName);
+
+                command.Connection = (NpgsqlConnection)connection;
+                command.CommandType = CommandType.Text;
+                command.CommandText = cmdText.ToString();
+
+                return await command.ExecuteScalarAsync();
+            }
+        }
     }
 }

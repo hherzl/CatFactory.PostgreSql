@@ -2,22 +2,26 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Version>1.0.0-beta-sun-build01</Version>
+    <Version>1.0.0-beta-sun-build02</Version>
     <Authors>H. Herzl</Authors>
     <Company>Herzl Corp.</Company>
     <Description>CatFactory package for Postgre SQL</Description>
     <RepositoryType>git</RepositoryType>
     <PackageTags>CatFactory PostgreSQL</PackageTags>
-    <PackageReleaseNotes>1.0.0-beta-sun-build01
+    <PackageReleaseNotes>1.0.0-beta-sun-build02
 
-* Code fix
+* Code Fix: Sequences loading
 
-* Core package update
 * Implementation of database factory for Postgre SQL
 * Addition of logger for import database feature
 * Import tables
 * Import views
 * Import sequences
+
+Usage:
+
+var database = await PostgreSqlDatabaseFactory
+                .ImportAsync("Your connection string!");
 </PackageReleaseNotes>
     <PackageLicenseUrl>https://github.com/hherzl/CatFactory.PostgreSql/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/hherzl/CatFactory.PostgreSql</PackageProjectUrl>
