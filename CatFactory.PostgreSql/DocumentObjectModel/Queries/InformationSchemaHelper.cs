@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace CatFactory.PostgreSql.DocumentObjectModel.Queries
+namespace CatFactory.PostgreSql.DatabaseObjectModel.Queries
 {
     public static class InformationSchemaHelper
     {

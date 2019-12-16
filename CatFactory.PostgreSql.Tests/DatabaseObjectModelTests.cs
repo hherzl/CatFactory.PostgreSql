@@ -1,15 +1,15 @@
 ﻿using System.Threading.Tasks;
-using CatFactory.PostgreSql.DocumentObjectModel.Queries;
+using CatFactory.PostgreSql.DatabaseObjectModel.Queries;
 using Npgsql;
 using Xunit;
 
 namespace CatFactory.PostgreSql.Tests
 {
-    public class DocumentObjectModelTests
+    public class DatabaseObjectModelTests
     {
         private readonly string ConnectionString;
 
-        public DocumentObjectModelTests()
+        public DatabaseObjectModelTests()
         {
             ConnectionString = "Server=localhost; Port=5432; Database=dvdrental; UserId=postgres; Password=Pass123$;";
         }

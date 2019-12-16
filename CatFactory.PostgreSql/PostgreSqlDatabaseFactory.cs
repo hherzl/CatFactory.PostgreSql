@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CatFactory.ObjectRelationalMapping;
 using CatFactory.ObjectRelationalMapping.Programmability;
-using CatFactory.PostgreSql.DocumentObjectModel.Queries;
+using CatFactory.PostgreSql.DatabaseObjectModel.Queries;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 

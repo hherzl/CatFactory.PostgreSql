@@ -1,4 +1,4 @@
-﻿namespace CatFactory.PostgreSql.DocumentObjectModel
+﻿namespace CatFactory.PostgreSql.DatabaseObjectModel
 {
     public class Sequences
     {
