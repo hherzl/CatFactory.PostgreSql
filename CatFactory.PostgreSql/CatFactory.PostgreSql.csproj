@@ -2,13 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Version>1.0.0-beta-sun-build03</Version>
+    <Version>1.0.0-beta-sun-build04</Version>
     <Authors>H. Herzl</Authors>
     <Company>Herzl Corp.</Company>
     <Description>CatFactory package for Postgre SQL</Description>
     <RepositoryType>git</RepositoryType>
     <PackageTags>CatFactory PostgreSQL</PackageTags>
-    <PackageReleaseNotes>1.0.0-beta-sun-build03
+    <PackageReleaseNotes>1.0.0-beta-sun-build04
+
+* Core package update
 
 * Code Refactor: Change DocumentObjectModel namespace to DatabaseObjectModel
 * Implementation of database factory for Postgre SQL
@@ -28,7 +30,7 @@ var database = await PostgreSqlDatabaseFactory
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build26" />
+    <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build27" />
     <PackageReference Include="Npgsql" Version="4.1.2" />
   </ItemGroup>
 
