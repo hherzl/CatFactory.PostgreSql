@@ -2,22 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Version>1.0.0-beta-sun-build04</Version>
+    <Version>1.0.0-beta-sun-build05</Version>
     <Authors>H. Herzl</Authors>
     <Company>Herzl Corp.</Company>
     <Description>CatFactory package for Postgre SQL</Description>
     <RepositoryType>git</RepositoryType>
     <PackageTags>CatFactory PostgreSQL</PackageTags>
-    <PackageReleaseNotes>1.0.0-beta-sun-build04
+    <PackageReleaseNotes>1.0.0-beta-sun-build05
 
-* Core package update
-
-* Code Refactor: Change DocumentObjectModel namespace to DatabaseObjectModel
-* Implementation of database factory for Postgre SQL
-* Addition of logger for import database feature
-* Import tables
-* Import views
-* Import sequences
+* Minor fixes in unit tests
 
 Usage:
 

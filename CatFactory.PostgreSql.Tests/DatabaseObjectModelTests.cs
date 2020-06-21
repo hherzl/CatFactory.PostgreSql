@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.ComponentModel;
+using System.Threading.Tasks;
 using CatFactory.PostgreSql.DatabaseObjectModel.Queries;
 using Npgsql;
 using Xunit;
@@ -15,7 +17,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public async Task TestGetTablesAsync()
+        public async Task GetTablesAsync()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -29,7 +31,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public void TestGetTables()
+        public void GetTables()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -43,7 +45,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public async Task TestGetViewsAsync()
+        public async Task GetViewsAsync()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -57,7 +59,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public void TestGetViews()
+        public void GetViews()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -71,7 +73,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public async Task TestGetTableConstraintsAsync()
+        public async Task GetTableConstraintsAsync()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -85,7 +87,23 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public void TestGetTableConstraints()
+        public async Task GetTableConstraintsForTableAsync()
+        {
+            var connection = new NpgsqlConnection(ConnectionString);
+
+            await connection.OpenAsync();
+
+            var tableConstraints = await connection.GetTableConstraintsAsync(tableSchema: "public", tableName: "country");
+
+            Assert.True(tableConstraints.Count == 4);
+            Assert.True(tableConstraints.Count(item => item.ConstraintType == "PRIMARY KEY") == 1);
+            Assert.True(tableConstraints.Count(item => item.ConstraintType == "CHECK") == 3);
+
+            connection.Close();
+        }
+
+        [Fact]
+        public void GetTableConstraints()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -99,7 +117,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public async Task TestGetColumnsAsync()
+        public async Task GetColumnsAsync()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -113,7 +131,35 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public void TestGetColumns()
+        public async Task GetColumnsForTableAsync()
+        {
+            var connection = new NpgsqlConnection(ConnectionString);
+
+            await connection.OpenAsync();
+
+            var columns = await connection.GetColumnsAsync(tableSchema: "public", tableName: "inventory");
+
+            Assert.True(columns.Count == 4);
+
+            connection.Close();
+        }
+
+        [Fact]
+        public async Task GetColumnsForViewAsync()
+        {
+            var connection = new NpgsqlConnection(ConnectionString);
+
+            await connection.OpenAsync();
+
+            var columns = await connection.GetColumnsAsync(tableSchema: "public", tableName: "film_list");
+
+            Assert.True(columns.Count == 8);
+
+            connection.Close();
+        }
+
+        [Fact]
+        public void GetColumns()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -127,7 +173,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public async Task TestGetKeyColumnUsagesAsync()
+        public async Task GetKeyColumnUsagesAsync()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -141,7 +187,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public void TestGetKeyColumnUsages()
+        public void GetKeyColumnUsages()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -155,7 +201,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public async Task TestGetSequencesAsync()
+        public async Task GetSequencesAsync()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
@@ -169,7 +215,7 @@ namespace CatFactory.PostgreSql.Tests
         }
 
         [Fact]
-        public void TestGetSequences()
+        public void GetSequences()
         {
             var connection = new NpgsqlConnection(ConnectionString);
 
