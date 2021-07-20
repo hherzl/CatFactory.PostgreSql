@@ -20,6 +20,12 @@ namespace CatFactory.PostgreSql
         public virtual string GetUniqueConstraintName(ITable table, string[] key)
             => string.Join("_", "U", table.Schema, table.Name, string.Join("_", key));
 
+        public string GetCheckConstraintName(ITable table, string key)
+            => string.Join("_", "CK", table.Schema, table.Name, string.Join("_", key));
+
+        public string GetDefaultConstraintName(ITable table, string key)
+        => string.Join("_", "DF", table.Schema, table.Name, string.Join("_", key));
+
         public virtual string ValidName(string name)
             => string.Format("\"{0}\"", name);
     }

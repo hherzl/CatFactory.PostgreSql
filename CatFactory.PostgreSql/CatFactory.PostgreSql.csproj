@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Version>1.0.0-beta-sun-build05</Version>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Version>1.0.0-beta-sun-build06</Version>
     <Authors>H. Herzl</Authors>
     <Company>Herzl Corp.</Company>
     <Description>CatFactory package for Postgre SQL</Description>
     <RepositoryType>git</RepositoryType>
     <PackageTags>CatFactory PostgreSQL</PackageTags>
-    <PackageReleaseNotes>1.0.0-beta-sun-build05
+    <PackageReleaseNotes>1.0.0-beta-sun-build06
 
-* Minor fixes in unit tests
+ Upgrade for .NET Core version
 
 Usage:
 
@@ -23,8 +23,8 @@ var database = await PostgreSqlDatabaseFactory
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build27" />
-    <PackageReference Include="Npgsql" Version="4.1.2" />
+    <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build31" />
+    <PackageReference Include="Npgsql" Version="5.0.7" />
   </ItemGroup>
 
 </Project>
