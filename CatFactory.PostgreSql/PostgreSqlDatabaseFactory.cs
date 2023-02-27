@@ -31,7 +31,7 @@ namespace CatFactory.PostgreSql
 
         public DatabaseImportSettings DatabaseImportSettings
         {
-            get => m_databaseImportSettings ?? (m_databaseImportSettings = new DatabaseImportSettings());
+            get => m_databaseImportSettings ??= new DatabaseImportSettings();
             set => m_databaseImportSettings = value;
         }
 
@@ -43,82 +43,81 @@ namespace CatFactory.PostgreSql
 
         public virtual async Task<Database> ImportAsync()
         {
-            using (var connection = GetConnection())
+            using var connection = GetConnection();
+
+            var database = new PostgreSqlDatabase
             {
-                var database = new PostgreSqlDatabase
+                ServerName = connection.DataSource,
+                Name = connection.Database,
+                DefaultSchema = "public",
+                SupportTransactions = true,
+                DatabaseTypeMaps = PostgreSqlDatabaseTypeMaps.DatabaseTypeMaps.ToList(),
+                NamingConvention = new PostgreSqlDatabaseNamingConvention()
+            };
+
+            await connection.OpenAsync();
+
+            // todo: add user defined datatypes
+
+            Logger?.LogInformation("Importing Db Objects for '{0}'...", database.Name);
+
+            foreach (var dbObject in await GetDbObjectsAsync(connection))
+            {
+                if (DatabaseImportSettings.Exclusions.Contains(dbObject.FullName))
+                    continue;
+
+                database.DbObjects.Add(dbObject);
+            }
+
+            if (DatabaseImportSettings.ImportTables)
+            {
+                Logger?.LogInformation("Importing tables for '{0}'...", database.Name);
+
+                foreach (var table in await GetTablesAsync(connection, database))
                 {
-                    ServerName = connection.DataSource,
-                    Name = connection.Database,
-                    DefaultSchema = "public",
-                    SupportTransactions = true,
-                    DatabaseTypeMaps = PostgreSqlDatabaseTypeMaps.DatabaseTypeMaps.ToList(),
-                    NamingConvention = new PostgreSqlDatabaseNamingConvention()
-                };
-
-                await connection.OpenAsync();
-
-                // todo: add user defined datatypes
-
-                Logger?.LogInformation("Importing Db Objects for '{0}'...", database.Name);
-
-                foreach (var dbObject in await GetDbObjectsAsync(connection))
-                {
-                    if (DatabaseImportSettings.Exclusions.Contains(dbObject.FullName))
+                    if (DatabaseImportSettings.Exclusions.Contains(table.FullName))
                         continue;
 
-                    database.DbObjects.Add(dbObject);
+                    // todo: Set primary key for table
+                    // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
+
+                    table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
+
+                    database.Tables.Add(table);
                 }
-
-                if (DatabaseImportSettings.ImportTables)
-                {
-                    Logger?.LogInformation("Importing tables for '{0}'...", database.Name);
-
-                    foreach (var table in await GetTablesAsync(connection, database))
-                    {
-                        if (DatabaseImportSettings.Exclusions.Contains(table.FullName))
-                            continue;
-
-                        // todo: Set primary key for table
-                        // reference: http://technosophos.com/2015/10/26/querying-postgresql-to-find-the-primary-key-of-a-table.html
-
-                        table.PrimaryKey = await GetPrimaryKeyAsync(connection, table);
-
-                        database.Tables.Add(table);
-                    }
-                }
-
-                if (DatabaseImportSettings.ImportViews)
-                {
-                    Logger?.LogInformation("Importing views for '{0}'...", database.Name);
-
-                    foreach (var view in await GetViewsAsync(connection, database))
-                    {
-                        if (DatabaseImportSettings.Exclusions.Contains(view.FullName))
-                            continue;
-
-                        database.Views.Add(view);
-                    }
-                }
-
-                if (DatabaseImportSettings.ImportSequences)
-                {
-                    Logger?.LogInformation("Importing sequences for '{0}'...", database.Name);
-
-                    foreach (var sequence in await GetSequencesAsync(connection, database))
-                    {
-                        if (DatabaseImportSettings.Exclusions.Contains(sequence.FullName))
-                            continue;
-
-                        database.Sequences.Add(sequence);
-                    }
-                }
-
-                connection.Close();
-
-                connection.Dispose();
-
-                return database;
             }
+
+            if (DatabaseImportSettings.ImportViews)
+            {
+                Logger?.LogInformation("Importing views for '{0}'...", database.Name);
+
+                foreach (var view in await GetViewsAsync(connection, database))
+                {
+                    if (DatabaseImportSettings.Exclusions.Contains(view.FullName))
+                        continue;
+
+                    database.Views.Add(view);
+                }
+            }
+
+            if (DatabaseImportSettings.ImportSequences)
+            {
+                Logger?.LogInformation("Importing sequences for '{0}'...", database.Name);
+
+                foreach (var sequence in await GetSequencesAsync(connection, database))
+                {
+                    if (DatabaseImportSettings.Exclusions.Contains(sequence.FullName))
+                        continue;
+
+                    database.Sequences.Add(sequence);
+                }
+            }
+
+            connection.Close();
+
+            connection.Dispose();
+
+            return database;
         }
 
         public Database Import()
@@ -126,32 +125,30 @@ namespace CatFactory.PostgreSql
 
         protected virtual async Task<ICollection<DbObject>> GetDbObjectsAsync(DbConnection connection)
         {
-            using (var command = connection.CreateCommand())
+            using var command = connection.CreateCommand();
+
+            command.Connection = connection;
+            command.CommandText = DatabaseImportSettings.ImportCommandText;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            var collection = new Collection<DbObject>();
+
+            while (await reader.ReadAsync())
             {
-                command.Connection = connection;
-                command.CommandText = DatabaseImportSettings.ImportCommandText;
-
-                using (var reader = await command.ExecuteReaderAsync())
+                collection.Add(new DbObject
                 {
-                    var collection = new Collection<DbObject>();
-
-                    while (await reader.ReadAsync())
-                    {
-                        collection.Add(new DbObject
-                        {
-                            DataSource = connection.DataSource,
-                            DatabaseName = connection.Database,
-                            Schema = reader.GetString(0),
-                            Name = reader.GetString(1),
-                            Type = reader.GetString(2)
-                        });
-                    }
-
-                    reader.Close();
-
-                    return collection;
-                }
+                    DataSource = connection.DataSource,
+                    DatabaseName = connection.Database,
+                    Schema = reader.GetString(0),
+                    Name = reader.GetString(1),
+                    Type = reader.GetString(2)
+                });
             }
+
+            reader.Close();
+
+            return collection;
         }
 
         protected virtual async Task<ICollection<Table>> GetTablesAsync(DbConnection connection, Database database)

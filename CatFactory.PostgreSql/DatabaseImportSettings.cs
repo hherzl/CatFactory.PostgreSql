@@ -11,25 +11,25 @@ namespace CatFactory.PostgreSql
         public DatabaseImportSettings()
         {
             ImportCommandText = @"
-                select
-                    table_schema as schema_name, table_name as object_name, 'table' as object_type
-                from
+                SELECT
+                    table_schema AS schema_name, table_name AS object_name, 'table' AS object_type
+                FROM
                     information_schema.tables
-                where
+                WHERE
                     table_schema = 'public'
-            union
-                select
-                    table_schema as schema_name, table_name as object_name, 'view' as object_type
-                from
+            UNION
+                SELECT
+                    table_schema AS schema_name, table_name AS object_name, 'view' AS object_type
+                FROM
                     information_schema.views
-                where
+                WHERE
                     table_schema = 'public'
-            union
-                select
-                    sequence_schema as schema_name, sequence_name as object_name, 'sequence' as object_type
-                from
+            UNION
+                SELECT
+                    sequence_schema AS schema_name, sequence_name AS object_name, 'sequence' AS object_type
+                FROM
                     information_schema.sequences
-                where
+                WHERE
                     sequence_schema = 'public'
             ;";
 
@@ -48,7 +48,7 @@ namespace CatFactory.PostgreSql
 
         public List<string> Exclusions
         {
-            get => m_exclusions ?? (m_exclusions = new List<string>());
+            get => m_exclusions ??= new List<string>();
             set => m_exclusions = value;
         }
     }

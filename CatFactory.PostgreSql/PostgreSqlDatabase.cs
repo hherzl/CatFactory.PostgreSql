@@ -20,7 +20,7 @@ namespace CatFactory.PostgreSql
         /// </summary>
         public List<Sequence> Sequences
         {
-            get => m_sequences ?? (m_sequences = new List<Sequence>());
+            get => m_sequences ??= new List<Sequence>();
             set => m_sequences = value;
         }
     }

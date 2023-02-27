@@ -1,16 +1,21 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Xunit;
 
 namespace CatFactory.PostgreSql.Tests
 {
     public class ImportTests
     {
+        private readonly string ConnectionString;
+
+        public ImportTests()
+        {
+            ConnectionString = "Server=localhost; Port=5432; Database=dvdrental; UserId=postgres; Password=Pass123$;";
+        }
+
         [Fact]
         public async Task DefaultImportDvdRentalDatabaseAsync()
         {
-            var database = await PostgreSqlDatabaseFactory
-                .ImportAsync("Server=localhost; Port=5432; Database=dvdrental; User Id=postgres; Password=Pass123$;");
+            var database = await PostgreSqlDatabaseFactory.ImportAsync(ConnectionString);
 
             Assert.True(database.Tables.Count > 0);
 
@@ -25,8 +30,7 @@ namespace CatFactory.PostgreSql.Tests
         [Fact]
         public void DefaultImportDvdRentalDatabase()
         {
-            var database = PostgreSqlDatabaseFactory
-                .Import("Server=localhost; Port=5432; Database=dvdrental; User Id=postgres; Password=Pass123$;");
+            var database = PostgreSqlDatabaseFactory.Import(ConnectionString);
 
             Assert.True(database.Tables.Count > 0);
 
@@ -39,8 +43,7 @@ namespace CatFactory.PostgreSql.Tests
         [Fact]
         public async Task ImportDvdRentalDatabaseWithViewsAsync()
         {
-            var database = await PostgreSqlDatabaseFactory
-                .ImportAsync("Server=localhost; Port=5432; Database=dvdrental; User Id=postgres; Password=Pass123$;", importViews: true);
+            var database = await PostgreSqlDatabaseFactory.ImportAsync(ConnectionString, importViews: true);
 
             Assert.True(database.Tables.Count > 0);
 
@@ -57,8 +60,7 @@ namespace CatFactory.PostgreSql.Tests
         [Fact]
         public async Task ImportDvdRentalDatabaseWithSequencesAsync()
         {
-            var database = await PostgreSqlDatabaseFactory
-                .ImportAsync("Server=localhost; Port=5432; Database=dvdrental; User Id=postgres; Password=Pass123$;", importSequences: true);
+            var database = await PostgreSqlDatabaseFactory.ImportAsync(ConnectionString, importSequences: true);
 
             Assert.True(database.Tables.Count > 0);
 

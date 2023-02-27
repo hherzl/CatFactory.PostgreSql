@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using CatFactory.PostgreSql.DatabaseObjectModel.Queries;
 using Npgsql;
