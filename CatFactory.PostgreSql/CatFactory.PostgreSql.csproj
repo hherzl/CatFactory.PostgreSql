@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="CatFactory" Version="1.0.0-beta-sun-build37" />
-    <PackageReference Include="Npgsql" Version="7.0.4" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
   </ItemGroup>
 
 </Project>
